@@ -20,7 +20,7 @@ pip install -r requirements.txt
 
 cd app
 
-streamlit run app/app.py
+streamlit run app.py
 
 ## Dataset
 

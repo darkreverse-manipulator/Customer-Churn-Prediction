@@ -5,6 +5,13 @@ from prediction import predict_customer
 from utils import calculate_risk
 from utils import business_recommendation
 
+from database import (
+    create_database,
+    save_prediction,
+    load_predictions,
+    delete_all_predictions
+)
+
 
 # ==========================================================
 # PAGE CONFIGURATION
@@ -17,6 +24,7 @@ st.set_page_config(
     initial_sidebar_state="expanded"
 )
 
+create_database()
 # ==========================================================
 # LOGIN CONFIGURATION
 # ==========================================================
@@ -251,6 +259,14 @@ left_profile, right_profile = st.columns(2)
 
 with left_profile:
 
+    customer_id = st.number_input(
+     "Customer ID",
+     min_value=1,
+     value=100001,
+     step=1
+    )
+
+    
     gender = st.selectbox(
         "Gender",
         ["Male", "Female"]
@@ -417,7 +433,7 @@ if analyse:
 
     customer = {
 
-        "id": 999999,
+        "id": int(customer_id),
 
         "gender": gender,
         "SeniorCitizen": senior_citizen,
@@ -445,6 +461,16 @@ if analyse:
     risk = calculate_risk(probability)
 
     recommendation = business_recommendation(risk)
+    save_prediction(
+        username=st.session_state.username,
+        customer=customer,
+        prediction=prediction,
+        probability=probability,
+        risk=risk,
+        recommendation=recommendation
+    )
+
+    st.success("Prediction saved successfully.")
 
     st.divider()
 
@@ -583,3 +609,83 @@ service subscription and billing information.
 The output assists customer retention planning.
 """
         )
+
+# ==========================================================
+# PREDICTION HISTORY
+# ==========================================================
+
+st.divider()
+
+st.header("🗄️ Prediction History")
+
+history = load_predictions()
+
+if history.empty:
+
+    st.info("No prediction records have been saved yet.")
+
+else:
+
+    total_predictions = len(history)
+
+    high_risk = len(
+        history[history["Risk"] == "HIGH"]
+    )
+
+    likely_churn = len(
+        history[
+            history["Prediction"] == "Likely to Churn"
+        ]
+    )
+
+    col1, col2, col3 = st.columns(3)
+
+    with col1:
+        st.metric(
+            "Total Predictions",
+            total_predictions
+        )
+
+    with col2:
+        st.metric(
+            "High Risk",
+            high_risk
+        )
+
+    with col3:
+        st.metric(
+            "Likely to Churn",
+            likely_churn
+        )
+
+    st.dataframe(
+        history,
+        use_container_width=True,
+        hide_index=True
+    )
+
+# ==========================================================
+# DATABASE MANAGEMENT
+# ==========================================================
+
+with st.expander("⚠️ Database Management"):
+
+    st.warning(
+        "This will permanently delete all prediction records."
+    )
+
+    confirm = st.checkbox(
+        "I understand that this action cannot be undone."
+    )
+
+    if st.button(
+        "Delete All Records",
+        disabled=not confirm,
+        use_container_width=True
+    ):
+
+        delete_all_predictions()
+
+        st.success("Database cleared successfully.")
+
+        st.rerun()

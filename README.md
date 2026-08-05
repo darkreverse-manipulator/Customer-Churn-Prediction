@@ -40,3 +40,7 @@ xgboost
 joblib
 matplotlib
 plotly
+
+## validation
+sername - admin
+password - admin123

@@ -17,6 +17,134 @@ st.set_page_config(
     initial_sidebar_state="expanded"
 )
 
+# ==========================================================
+# LOGIN CONFIGURATION
+# ==========================================================
+
+VALID_USERNAME = "admin"
+VALID_PASSWORD = "admin123"
+
+
+def initialize_session():
+    """Initialize login-related session variables."""
+
+    if "logged_in" not in st.session_state:
+        st.session_state.logged_in = False
+
+    if "username" not in st.session_state:
+        st.session_state.username = ""
+
+
+def login_page():
+    """Display the application login page."""
+
+    st.markdown(
+        """
+        <style>
+        [data-testid="stSidebar"] {
+            display: none;
+        }
+
+        .login-title {
+            text-align: center;
+            color: #173F5F;
+            font-size: 38px;
+            font-weight: 700;
+            margin-bottom: 5px;
+        }
+
+        .login-subtitle {
+            text-align: center;
+            color: #5A7184;
+            font-size: 17px;
+            margin-bottom: 30px;
+        }
+
+        .login-footer {
+            text-align: center;
+            color: #718096;
+            font-size: 13px;
+            margin-top: 25px;
+        }
+        </style>
+        """,
+        unsafe_allow_html=True
+    )
+
+    left_space, login_column, right_space = st.columns([1.2, 1, 1.2])
+
+    with login_column:
+
+        st.markdown(
+            '<div class="login-title">📡 Customer Retention System</div>',
+            unsafe_allow_html=True
+        )
+
+        st.markdown(
+            '<div class="login-subtitle">'
+            'Secure access to the churn prediction dashboard'
+            '</div>',
+            unsafe_allow_html=True
+        )
+
+        with st.form("login_form"):
+
+            username = st.text_input(
+                "Username",
+                placeholder="Enter your username"
+            )
+
+            password = st.text_input(
+                "Password",
+                type="password",
+                placeholder="Enter your password"
+            )
+
+            login_button = st.form_submit_button(
+                "Login",
+                use_container_width=True
+            )
+
+        if login_button:
+
+            if username == VALID_USERNAME and password == VALID_PASSWORD:
+
+                st.session_state.logged_in = True
+                st.session_state.username = username
+
+                st.success("Login successful.")
+
+                st.rerun()
+
+            elif not username or not password:
+
+                st.warning("Please enter both username and password.")
+
+            else:
+
+                st.error("Incorrect username or password.")
+
+        st.markdown(
+            '<div class="login-footer">'
+            'Telecom Customer Retention Intelligence'
+            '</div>',
+            unsafe_allow_html=True
+        )
+
+
+def logout():
+    """Log the current user out of the application."""
+
+    st.session_state.logged_in = False
+    st.session_state.username = ""
+
+    st.rerun()
+initialize_session()
+
+if not st.session_state.logged_in:
+    login_page()
+    st.stop()
+
 
 # ==========================================================
 # CUSTOM STYLE
@@ -61,7 +189,6 @@ h1,h2,h3{
 </style>
 """, unsafe_allow_html=True)
 
-
 # ==========================================================
 # SIDEBAR
 # ==========================================================
@@ -72,18 +199,24 @@ with st.sidebar:
 
     st.success("Customer Retention Analytics")
 
+    st.write(
+        f"Logged in as: **{st.session_state.username}**"
+    )
+
+    if st.button(
+        "🚪 Logout",
+        use_container_width=True
+    ):
+        logout()
+
     st.markdown("---")
 
     st.write("### Workflow")
 
     st.write("① Customer Profile")
-
     st.write("② Service Portfolio")
-
     st.write("③ Subscription Details")
-
     st.write("④ Prediction Dashboard")
-
     st.write("⑤ Business Recommendation")
 
     st.markdown("---")
@@ -95,7 +228,6 @@ of customer churn using a trained
 Extreme Gradient Boosting model.
 """
     )
-
 
 # ==========================================================
 # HEADER
